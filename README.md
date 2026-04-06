@@ -1,0 +1,2 @@
+# OBRail-MSPR2
+Système de machine learning développé pour ObRail Europe, classifiant les liaisons ferroviaires intra-européennes selon leur potentiel de substitution à l'avion. Basé sur les données ETL du projet 1, le modèle compare plusieurs algorithmes et expose ses prédictions via une API REST.
