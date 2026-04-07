@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.joblib
+*.pkl
+data/external/
+.env
+.DS_Store
