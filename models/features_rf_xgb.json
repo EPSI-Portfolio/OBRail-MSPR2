@@ -1,0 +1,17 @@
+[
+  "distance_km",
+  "train_gco2_pkm",
+  "plane_gco2_pkm",
+  "train_co2_kg",
+  "plane_co2_kg",
+  "co2_savings_kg",
+  "savings_percent",
+  "co2_ratio_train_plane",
+  "is_cross_border",
+  "is_outlier_distance",
+  "type_encoded",
+  "origin_country_enc",
+  "destination_country_enc",
+  "distance_category_enc",
+  "operator_enc"
+]
