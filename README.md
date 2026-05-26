@@ -49,25 +49,28 @@ L’API permet de prédire si une ligne est sous-desservie.
 {
   "is_underserved": 1
 }
+ ```
 
+```
 ▶️ Lancer l’API
 
 uvicorn api.main:app --reload
+```
 
 
- Accès à la documentation :
+Accès à la documentation :
 
 http://127.0.0.1:8000/docs
 
 
-📦 Installation
+``` 📦 Installation
 
 git clone <repo>
 cd ObRail-MSPR2
 pip install -r requirements.txt
+```
 
-
-📁 Structure du projet
+``` 📁 Structure du projet
 
 ObRail-MSPR2/
 │
@@ -87,19 +90,20 @@ ObRail-MSPR2/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+```
 
 
-
-⚖️ Limites
+``` ⚖️ Limites
 
 Données partiellement simulées
 Déséquilibre des classes
 Difficulté à détecter certains cas rares
+```
 
-
-✅ Perspectives
+``` ✅ Perspectives
 
 Intégration de données réelles
 Amélioration du modèle
 Déploiement cloud (Azure, AWS)
 Ajout de visualisations
+```
