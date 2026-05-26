@@ -1,81 +1,56 @@
 """
 data_prep.py — ObRail MSPR 2025-2026
 Auteur : Jeannette
-Rôle   : Nettoyage, traitement des valeurs manquantes et fusion des données
+Rôle   : Nettoyage, traitement, feature engineering + sous-dessertes
          → produit data/processed/routes_processed.csv
 """
 
 import pandas as pd
 import numpy as np
-from math import radians, sin, cos, sqrt, atan2
 import os
 
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
 SEED = 42
-RAW_DIR       = "data/raw"
-EXTERNAL_DIR  = "data/external"
+np.random.seed(SEED)
+
+RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
 
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 
 # ─────────────────────────────────────────────
-# 1. CHARGEMENT DES DONNÉES
+# 1. CHARGEMENT
 # ─────────────────────────────────────────────
 print("=" * 60)
 print("ÉTAPE 1 — Chargement des données")
 print("=" * 60)
 
 df = pd.read_csv(f"{RAW_DIR}/environmental_impact.csv")
-airports = pd.read_csv(
-    f"{EXTERNAL_DIR}/openflights_airports.csv",
-    header=None,
-    names=[
-        "airport_id", "name", "city", "country",
-        "iata", "icao", "lat", "lon",
-        "altitude", "timezone", "dst", "tz_db",
-        "type", "source"
-    ]
-)
-
-print(f"✅ environmental_impact.csv chargé : {df.shape[0]} lignes, {df.shape[1]} colonnes")
-print(f"✅ openflights_airports.csv chargé : {airports.shape[0]} aéroports")
+print(f"✅ Dataset chargé : {df.shape[0]} lignes × {df.shape[1]} colonnes")
 
 # ─────────────────────────────────────────────
-# 2. DIAGNOSTIC INITIAL
+# 2. DIAGNOSTIC
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 2 — Diagnostic initial")
-print("=" * 60)
-
-print(f"\nValeurs manquantes par colonne :")
+print("\nValeurs manquantes :")
 print(df.isnull().sum()[df.isnull().sum() > 0])
 
-print(f"\nDoublons exacts : {df.duplicated().sum()}")
-print(f"Doublons sur route_name : {df.duplicated(subset=['route_name']).sum()}")
-
-print(f"\nDistribution type (day/night) :")
-print(df['type'].value_counts())
-
-print(f"\nDistribution par pays d'origine (top 10) :")
-print(df['origin_country'].value_counts().head(10))
-
 # ─────────────────────────────────────────────
-# 3. TRAITEMENT DES VALEURS MANQUANTES
+# 3. IMPUTATION DISTANCE
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 3 — Traitement des valeurs manquantes")
-print("=" * 60)
+print("\nÉTAPE 3 — Imputation des distances")
 
-n_missing = df['distance_km'].isnull().sum()
-print(f"\n{n_missing} distances manquantes à traiter")
+df_known = df[df['distance_km'].notna()]
 
-# Stratégie : imputation par médiane selon la paire (origin_country, destination_country, type)
-# Les noms de gares ne sont pas des codes IATA → OpenFlights ne peut pas matcher directement
+medians = {
+    'level1': df_known.groupby(['origin_country', 'destination_country', 'type'])['distance_km'].median().to_dict(),
+    'level2': df_known.groupby(['origin_country', 'destination_country'])['distance_km'].median().to_dict(),
+    'level3': df_known.groupby('origin_country')['distance_km'].median().to_dict(),
+    'global': df_known['distance_km'].median()
+}
 
-def impute_distance(row, medians):
-    """Impute la distance manquante par médiane de groupe, avec fallback progressif."""
+def impute_distance(row):
     key1 = (row['origin_country'], row['destination_country'], row['type'])
     key2 = (row['origin_country'], row['destination_country'])
     key3 = row['origin_country']
@@ -86,154 +61,134 @@ def impute_distance(row, medians):
         return medians['level2'][key2]
     elif key3 in medians['level3']:
         return medians['level3'][key3]
-    else:
-        return medians['global']
-
-# Calculer les médianes sur les lignes NON manquantes
-df_known = df[df['distance_km'].notna()]
-
-medians = {
-    'level1': df_known.groupby(['origin_country', 'destination_country', 'type'])['distance_km'].median().to_dict(),
-    'level2': df_known.groupby(['origin_country', 'destination_country'])['distance_km'].median().to_dict(),
-    'level3': df_known.groupby('origin_country')['distance_km'].median().to_dict(),
-    'global': df_known['distance_km'].median()
-}
+    return medians['global']
 
 mask_missing = df['distance_km'].isnull()
-df.loc[mask_missing, 'distance_km'] = df[mask_missing].apply(
-    lambda row: impute_distance(row, medians), axis=1
-)
-
-# Recalculer les colonnes CO2 dépendantes de distance_km
-mask_co2_missing = df['train_co2_kg'].isnull()
-df.loc[mask_co2_missing, 'train_co2_kg']   = df.loc[mask_co2_missing, 'distance_km'] * df.loc[mask_co2_missing, 'train_gco2_pkm'] / 1000
-df.loc[mask_co2_missing, 'plane_co2_kg']   = df.loc[mask_co2_missing, 'distance_km'] * df.loc[mask_co2_missing, 'plane_gco2_pkm'] / 1000
-df.loc[mask_co2_missing, 'co2_savings_kg'] = df.loc[mask_co2_missing, 'plane_co2_kg'] - df.loc[mask_co2_missing, 'train_co2_kg']
-df.loc[mask_co2_missing, 'savings_percent'] = (
-    df.loc[mask_co2_missing, 'co2_savings_kg'] / df.loc[mask_co2_missing, 'plane_co2_kg'] * 100
-).round(2)
-
-print(f"✅ {n_missing} distances imputées par médiane de groupe")
-print(f"   Valeurs manquantes restantes : {df['distance_km'].isnull().sum()}")
+df.loc[mask_missing, 'distance_km'] = df[mask_missing].apply(impute_distance, axis=1)
+print(f"✅ Distances imputées : {mask_missing.sum()}")
 
 # ─────────────────────────────────────────────
-# 4. TRAITEMENT DES VALEURS ABERRANTES
+# 4. RECALCUL CO2
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 4 — Traitement des valeurs aberrantes")
-print("=" * 60)
+print("\nÉTAPE 4 — Recalcul CO2")
 
-q1 = df['distance_km'].quantile(0.25)
-q3 = df['distance_km'].quantile(0.75)
-iqr = q3 - q1
-lower = q1 - 1.5 * iqr
-upper = q3 + 1.5 * iqr
+mask_train = df['train_co2_kg'].isnull()
+mask_plane = df['plane_co2_kg'].isnull()
 
-outliers_mask = (df['distance_km'] < lower) | (df['distance_km'] > upper)
-n_outliers = outliers_mask.sum()
+df.loc[mask_train, 'train_co2_kg'] = df.loc[mask_train, 'distance_km'] * df.loc[mask_train, 'train_gco2_pkm'] / 1000
+df.loc[mask_plane, 'plane_co2_kg'] = df.loc[mask_plane, 'distance_km'] * df.loc[mask_plane, 'plane_gco2_pkm'] / 1000
 
-print(f"\nSeuils IQR : [{lower:.1f} km — {upper:.1f} km]")
-print(f"Valeurs aberrantes détectées : {n_outliers}")
-print(f"\n⚠️  Ces lignes sont CONSERVÉES (longues distances réelles : TGV, Nightjet…)")
-print(f"   Elles seront signalées avec un flag 'is_outlier_distance'")
+df['co2_savings_kg'] = df['plane_co2_kg'] - df['train_co2_kg']
+df['savings_percent'] = (df['co2_savings_kg'] / df['plane_co2_kg'] * 100).round(2)
 
-df['is_outlier_distance'] = outliers_mask.astype(int)
+print("✅ CO2 recalculé")
 
 # ─────────────────────────────────────────────
-# 5. NETTOYAGE GÉNÉRAL
+# 5. NETTOYAGE
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 5 — Nettoyage général")
-print("=" * 60)
+print("\nÉTAPE 5 — Nettoyage")
 
-# Supprimer les doublons exacts
-n_before = len(df)
 df = df.drop_duplicates()
-print(f"✅ Doublons exacts supprimés : {n_before - len(df)}")
 
-# Normaliser les chaînes de caractères
-for col in ['origin', 'destination', 'origin_country', 'destination_country',
-            'service_type', 'operator', 'type']:
+for col in ['origin', 'destination', 'origin_country', 'destination_country', 'type']:
     df[col] = df[col].str.strip()
 
-# Convertir calculation_date en datetime
 df['calculation_date'] = pd.to_datetime(df['calculation_date'], errors='coerce')
 
-# Arrondir les colonnes numériques
-for col in ['distance_km', 'train_co2_kg', 'plane_co2_kg', 'co2_savings_kg', 'savings_percent']:
-    df[col] = df[col].round(3)
-
-print(f"✅ Chaînes normalisées (strip)")
-print(f"✅ calculation_date converti en datetime")
-print(f"✅ Colonnes numériques arrondies à 3 décimales")
-
 # ─────────────────────────────────────────────
-# 6. FEATURE ENGINEERING DE BASE
+# 6. FEATURE ENGINEERING
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 6 — Feature engineering de base")
-print("=" * 60)
+print("\nÉTAPE 6 — Feature engineering")
 
-# Trajet transfrontalier
 df['is_cross_border'] = (df['origin_country'] != df['destination_country']).astype(int)
 
-# Catégorie de distance
 df['distance_category'] = pd.cut(
     df['distance_km'],
     bins=[0, 150, 400, 800, float('inf')],
     labels=['court', 'moyen', 'long', 'tres_long']
 )
 
-# Compétitivité avion (distance < 700 km → le train est compétitif)
-df['is_flight_competitive'] = (df['distance_km'] <= 700).astype(int)
-
-# Ratio CO2 train/avion
-df['co2_ratio_train_plane'] = (df['train_co2_kg'] / df['plane_co2_kg']).round(4)
-
-# Encodage type : day=0, night=1
 df['type_encoded'] = df['type'].map({'day': 0, 'night': 1})
 
-print(f"✅ is_cross_border ajouté")
-print(f"✅ distance_category ajouté (court/moyen/long/tres_long)")
-print(f"✅ is_flight_competitive ajouté (distance ≤ 700 km)")
-print(f"✅ co2_ratio_train_plane ajouté")
-print(f"✅ type_encoded ajouté (day=0, night=1)")
+df['co2_ratio_train_plane'] = (
+    df['train_co2_kg'] / df['plane_co2_kg']
+).round(4)
 
 # ─────────────────────────────────────────────
-# 7. VALIDATION FINALE
+# 7. FRÉQUENTATION (SIMULATION)
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 7 — Validation finale")
-print("=" * 60)
+print("\nÉTAPE 7 — Estimation de la fréquentation")
 
-print(f"\nShape finale : {df.shape}")
-print(f"\nValeurs manquantes restantes :")
-missing_final = df.isnull().sum()[df.isnull().sum() > 0]
-print(missing_final if len(missing_final) > 0 else "  Aucune ✅")
+def estimate_capacity(row):
+    return 400 if row['type'] == 'night' else 500
 
-print(f"\nColonnes du dataset final :")
-for col in df.columns:
-    print(f"  - {col} ({df[col].dtype})")
+def estimate_load_factor(row):
+    base = 0.65
+    if row['distance_km'] > 500:
+        base += 0.1
+    if row['type'] == 'night':
+        base -= 0.05
+    return np.clip(np.random.normal(base, 0.05), 0.4, 0.9)
 
-print(f"\nDistribution finale type :")
-print(df['type'].value_counts())
+df['capacity'] = df.apply(estimate_capacity, axis=1)
+df['load_factor'] = df.apply(estimate_load_factor, axis=1)
 
-print(f"\nDistribution distance_category :")
-print(df['distance_category'].value_counts())
+df['passengers_estimated'] = (df['capacity'] * df['load_factor']).astype(int)
 
-print(f"\nTrajets transfrontaliers : {df['is_cross_border'].sum()} / {len(df)}")
-print(f"Trajets compétitifs vs avion : {df['is_flight_competitive'].sum()} / {len(df)}")
+print("✅ fréquentation simulée ajoutée")
 
 # ─────────────────────────────────────────────
-# 8. SAUVEGARDE
+# 8. CO2 PAR PASSAGER
 # ─────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("ÉTAPE 8 — Sauvegarde")
-print("=" * 60)
+print("\nÉTAPE 8 — CO2 par passager")
 
+df['train_co2_per_passenger'] = (df['train_co2_kg'] / df['passengers_estimated']).round(4)
+df['plane_co2_per_passenger'] = (df['plane_co2_kg'] / df['passengers_estimated']).round(4)
+
+print("✅ CO2/passager ajouté")
+
+# ─────────────────────────────────────────────
+# 9. SOUS-DESSERTES (IA)
+# ─────────────────────────────────────────────
+print("\nÉTAPE 9 — Détection des sous-dessertes")
+
+df['service_ratio'] = df['passengers_estimated'] / df['capacity']
+
+df['is_underserved'] = (
+    (
+        df['passengers_estimated'] > df['capacity'] * 0.85
+    ) &
+    (
+        df['distance_km'] > 400
+    ) &
+    (
+        df['is_cross_border'] == 1
+    )
+).astype(int)
+
+# ajouter un peu de bruit réaliste
+noise = np.random.rand(len(df)) < 0.1
+df.loc[noise, 'is_underserved'] = 1 - df.loc[noise, 'is_underserved']
+
+print("✅ is_underserved créé")
+print(df['is_underserved'].value_counts())
+
+# ─────────────────────────────────────────────
+# 10. VALIDATION
+# ─────────────────────────────────────────────
+print("\nÉTAPE 10 — Validation")
+
+missing = df.isnull().sum()
+print(missing[missing > 0] if len(missing[missing > 0]) else "✅ Aucun missing")
+
+print(f"\nShape final : {df.shape}")
+
+# ─────────────────────────────────────────────
+# 11. SAVE
+# ─────────────────────────────────────────────
 output_path = f"{PROCESSED_DIR}/routes_processed.csv"
 df.to_csv(output_path, index=False)
-print(f"\n✅ routes_processed.csv sauvegardé → {output_path}")
-print(f"   {df.shape[0]} lignes × {df.shape[1]} colonnes")
-print(f"\n🎉 data_prep.py terminé avec succès !")
-print(f"   Livrable prêt pour Charlotte (feature engineering) et Louis (EDA)")
+
+print("\n✅ DATASET FINAL SAUVEGARDÉ")
+print(f"{df.shape[0]} lignes × {df.shape[1]} colonnes")
+print("\n🎉 data_prep terminé !")
