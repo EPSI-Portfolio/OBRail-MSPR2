@@ -2,8 +2,8 @@
 train_rf_xgb.py — ObRail MSPR 2025-2026
 Auteur : Jeannette
 Rôle   : Entraînement Random Forest et XGBoost
-         Tâche : classification is_flight_competitive (train compétitif vs avion ?)
-         → produit models/rf_model.joblib et models/xgb_model.joblib
+# Tâche : classification is_underserved (ligne sous-desservie ?)
+#          → produit models/rf_model.joblib et models/xgb_model.joblib
          → produit evaluation/comparison_rf_xgb.csv
 """
 
@@ -66,6 +66,7 @@ NUMERIC_FEATURES = [
     'is_cross_border',
     'is_outlier_distance',
     'type_encoded',
+    'capacity',
 ]
 
 # Features catégorielles à encoder
@@ -76,7 +77,7 @@ CATEGORICAL_FEATURES = [
     'operator',
 ]
 
-TARGET = 'is_flight_competitive'
+TARGET = 'is_underserved'
 
 # Encodage des variables catégorielles
 encoders = {}

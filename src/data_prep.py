@@ -200,6 +200,36 @@ print(f"✅ co2_ratio_train_plane ajouté")
 print(f"✅ type_encoded ajouté (day=0, night=1)")
 
 # ─────────────────────────────────────────────
+# 6b. SIMULATION DES VARIABLES MANQUANTES
+# ─────────────────────────────────────────────
+print(f"\n--- Simulation des variables manquantes ---")
+
+# Capacité estimée selon le type de train
+df['capacity'] = df['type_encoded'].map({0: 300, 1: 200})
+
+# Fréquentation avec variation aléatoire
+np.random.seed(SEED)
+base_rate = 0.5 + 0.3 * df['is_cross_border'] + 0.1 * df['type_encoded']
+noise = np.random.normal(0, 0.15, len(df))
+fill_rate = (base_rate + noise).clip(0.3, 1.2)
+
+df['passengers_estimated'] = (df['capacity'] * fill_rate).round(0).astype(int)
+
+# Taux de remplissage
+df['load_factor'] = (df['passengers_estimated'] / df['capacity']).round(4)
+
+# Variable cible : ligne sous-desservie si load_factor > 0.85
+df['is_underserved'] = (
+    (df['load_factor'] > 0.85) & (df['distance_km'] > 150)
+).astype(int)
+
+print(f"✅ capacity ajouté")
+print(f"✅ passengers_estimated ajouté")
+print(f"✅ load_factor ajouté")
+print(f"✅ is_underserved ajouté — distribution :")
+print(df['is_underserved'].value_counts())
+
+# ─────────────────────────────────────────────
 # 7. VALIDATION FINALE
 # ─────────────────────────────────────────────
 print("\n" + "=" * 60)
