@@ -10,6 +10,7 @@
   "is_cross_border",
   "is_outlier_distance",
   "type_encoded",
+  "capacity",
   "origin_country_enc",
   "destination_country_enc",
   "distance_category_enc",
