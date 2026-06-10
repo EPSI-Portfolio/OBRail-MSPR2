@@ -1,0 +1,5 @@
+Modèle,Accuracy,F1 classe 1,ROC-AUC
+Régression Logistique,0.77,0.79,0.892
+Random Forest,0.77,0.76,0.87
+LightGBM,0.78,0.76,0.87
+MLP,0.79,0.75,0.881
