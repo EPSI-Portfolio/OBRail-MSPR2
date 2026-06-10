@@ -238,7 +238,7 @@ print(df['is_underserved'].value_counts(normalize=True).mul(100).round(1))
 
 print(f"\nAperçu :")
 print(df[['route_name', 'country', 'service_type', 
-          'trip_count', 'is_underserved']].head(10))
+            'trip_count', 'is_underserved']].head(10))
 
 # ─────────────────────────────────────────────
 # ÉTAPE 7 — SAUVEGARDE
