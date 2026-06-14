@@ -1,6 +1,5 @@
 # Raw GTFS data (too large for git — see data/raw/README.md)
-data/raw/day/
-data/raw/night/
+data/raw/
 
 # Python
 venv/
@@ -9,3 +8,6 @@ __pycache__/
 
 # Jupyter
 .ipynb_checkpoints/
+models/
+data/processed/
+evaluation/plots/
