@@ -1,7 +1,15 @@
-.venv/
+# Raw GTFS data (too large for git — see data/raw/README.md)
+data/raw/
+
+# Python
 venv/
 __pycache__/
-*.joblib
-*.pkl
-.env
-.DS_Store
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+models/
+data/processed/
+evaluation/plots/
+notebooks/.ipynb_checkpoints/
+**/.ipynb_checkpoints/
