@@ -1,4 +1,4 @@
-Étape,Test F1,Test ROC-AUC,Description
-Baseline (défaut),0.605,0.8826,"n_estimators=200, hyperparamètres par défaut"
-RandomizedSearch,0.5995,0.8823,"40 combinaisons aléatoires, large espace de recherche"
-GridSearch (affinement),0.6033,0.8811,Grille fine autour des meilleurs paramètres RandomizedSearch
+Étape,Test F1,Test AUC
+Baseline,0.605,0.8826
+RandomizedSearch,0.5995,0.8823
+GridSearch,0.6033,0.8811

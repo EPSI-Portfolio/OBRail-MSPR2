@@ -169,10 +169,10 @@ def main() -> None:
         "best_params": final_params,
         "features": list(X_train.columns),
         "target": "is_underserved",
-        "optimization": "RandomizedSearchCV (40 iter) → GridSearchCV",
+        "optimization": "RandomizedSearchCV (40 iter) -> GridSearchCV",
         "seed": SEED,
     }
-    with open(MODELS_DIR / "model_metadata.json", "w") as f:
+    with open(MODELS_DIR / "model_metadata.json", "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
 
     print("✅ best_model_optimized.joblib + model_metadata.json sauvegardés")

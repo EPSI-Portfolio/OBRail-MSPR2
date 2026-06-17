@@ -1,6 +1,6 @@
 """
 data_prep.py — ObRail MSPR 2025-2026
-Auteure : Charlotte
+Auteure : Jeannette
 
 Rôle :
 Construction du dataset de modélisation à partir

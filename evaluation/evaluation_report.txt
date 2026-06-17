@@ -1,0 +1,14 @@
+Évaluation du modèle final — ObRail MSPR
+==================================================
+
+Test F1      : 0.6033
+Test ROC-AUC : 0.8811
+
+                   precision    recall  f1-score   support
+
+Non sous-desservi       0.99      0.70      0.82      4063
+    Sous-desservi       0.44      0.97      0.60       977
+
+         accuracy                           0.75      5040
+        macro avg       0.71      0.83      0.71      5040
+     weighted avg       0.88      0.75      0.78      5040
