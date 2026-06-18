@@ -1,6 +1,5 @@
 """
 evaluate.py — ObRail MSPR 2025-2026
-Auteure : Charlotte
 
 Rôle :
 Évaluation finale du modèle optimisé sur le jeu de test : métriques,

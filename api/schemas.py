@@ -1,7 +1,6 @@
 """
 schemas.py
 Rôle : Définir les structures de données d'entrée et sortie de l'API.
-Auteure : Jeannette
 """
 
 from pydantic import BaseModel

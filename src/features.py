@@ -1,6 +1,5 @@
 """
 features.py — ObRail MSPR 2025-2026
-Auteure : Charlotte
 
 Rôle :
 Construction du feature set final et des splits train/test à partir
