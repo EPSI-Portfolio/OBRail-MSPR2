@@ -1,27 +1,29 @@
 """
 schemas.py
 Rôle : Définir les structures de données d'entrée et sortie de l'API.
+Auteure : Jeannette
 """
 
 from pydantic import BaseModel
+from typing import Optional
 
 
 class PredictionInput(BaseModel):
     """
     Données attendues pour faire une prédiction
     """
-
+    departure_country: str
+    service_type: str
     distance_km: float
-    type_encoded: int
-    is_cross_border: int
-    passengers_estimated: int
-    capacity: int
-    load_factor: float
+    co2_per_pkm: float
+    arrival_country: Optional[str] = None
 
 
 class PredictionOutput(BaseModel):
     """
     Réponse renvoyée par l'API
     """
-
     is_underserved: int
+    probability: float
+    label: str
+    inputs: dict

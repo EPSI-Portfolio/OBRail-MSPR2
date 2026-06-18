@@ -1,4 +1,4 @@
-# Raw GTFS data (too large for git — see data/raw/README.md)
+﻿# Raw GTFS data (too large for git)
 data/raw/
 
 # Python
@@ -8,8 +8,10 @@ __pycache__/
 
 # Jupyter
 .ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Generated outputs
 models/
 data/processed/
 evaluation/plots/
-notebooks/.ipynb_checkpoints/
-**/.ipynb_checkpoints/

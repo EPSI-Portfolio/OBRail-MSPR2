@@ -1,13 +1,12 @@
 """
 predict.py
 Rôle : Endpoint de prédiction /predict
+Auteur : Jeannette
 """
 
 from fastapi import APIRouter
-import numpy as np
-
 from api.schemas import PredictionInput, PredictionOutput
-from api.model_loader import model
+from src.predict import predict_route
 
 # ✅ CRÉATION DU ROUTER (OBLIGATOIRE)
 router = APIRouter()
@@ -23,18 +22,11 @@ def predict(data: PredictionInput):
     1 = sous-desservie
     0 = non sous-desservie
     """
-
-    # Conversion des données en tableau pour le modèle
-    features = np.array([[
-        data.distance_km,
-        data.type_encoded,
-        data.is_cross_border,
-        data.passengers_estimated,
-        data.capacity,
-        data.load_factor
-    ]])
-
-    # Prédiction avec le modèle
-    prediction = model.predict(features)[0]
-
-    return {"is_underserved": int(prediction)}
+    result = predict_route(
+        departure_country=data.departure_country,
+        service_type=data.service_type,
+        distance_km=data.distance_km,
+        co2_per_pkm=data.co2_per_pkm,
+        arrival_country=data.arrival_country,
+    )
+    return result
