@@ -1,6 +1,5 @@
 # Veille Technique et Recommandations
-**Projet** : ObRail MSPR 2025-2026  
-**Auteure** : Charlotte  
+**Projet** : ObRail MSPR 2025-2026 
 **Date** : Juin 2026
 
 ---
