@@ -1,7 +1,6 @@
 """
 model_loader.py
 Rôle : Charger le modèle ML une seule fois au démarrage de l'API.
-Auteur : Jeannette
 """
 
 import joblib

@@ -1,6 +1,5 @@
 """
 predict.py — Pipeline de prédiction reproductible (ObRail MSPR2)
-Auteure : Charlotte
 
 Charge le modèle LightGBM optimisé et le scaler, et expose predict_route()
 C'est cette fonction que l'API REST (route /predict) doit appeler.

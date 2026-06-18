@@ -1,7 +1,6 @@
 """
 predict.py
 Rôle : Endpoint de prédiction /predict
-Auteur : Jeannette
 """
 
 from fastapi import APIRouter

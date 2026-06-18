@@ -1,6 +1,5 @@
 """
 optimize.py — ObRail MSPR 2025-2026
-Auteure : Charlotte
 
 Rôle :
 Optimisation des hyperparamètres de LightGBM en deux étapes

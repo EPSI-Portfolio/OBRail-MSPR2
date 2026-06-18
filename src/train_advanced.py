@@ -1,6 +1,5 @@
 """
 train_advanced.py — ObRail MSPR 2025-2026
-Auteure : Charlotte
 
 Rôle :
 Entraînement et comparaison des 4 modèles candidats sur la tâche
