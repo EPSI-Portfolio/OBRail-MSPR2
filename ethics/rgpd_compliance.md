@@ -33,7 +33,11 @@ Le RGPD s'applique au traitement de données personnelles. Le projet ne traitant
 
 ## 4. Sécurité des données
 
+<<<<<<< HEAD
+- Les fichiers de données brutes et les modèles entraînés ne sont pas versionnés sur GitHub (`.gitignore`) — ils sont générés localement par l'exécution du pipeline.
+=======
 - Les fichiers de données brutes et les modèles entraînés ne sont pas versionnés sur GitHub (`.gitignore`) — ils sont générés     localement par l'exécution du pipeline.
+>>>>>>> d1cdaa8ffade04c14c653eb3e9992160b79f2bbb
 - Le modèle est sauvegardé au format `joblib`, un format standard sans dépendance propriétaire.
 - L'API n'expose aucune donnée stockée — elle ne fait que retourner une prédiction à partir des entrées fournies.
 
