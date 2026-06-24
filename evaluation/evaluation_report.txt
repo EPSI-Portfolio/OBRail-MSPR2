@@ -1,8 +1,11 @@
-Évaluation du modèle final — ObRail MSPR
+Ã‰valuation du modÃ¨le final â€” ObRail MSPR
 ==================================================
 
-Test F1      : 0.6033
-Test ROC-AUC : 0.8811
+Accuracy                       : 0.7532
+F1 (classe sous-desservie)     : 0.6033
+ROC-AUC                        : 0.8811
+Precision (sous-desservie)     : 0.4382
+Recall (sous-desservie)        : 0.9683
 
                    precision    recall  f1-score   support
 
