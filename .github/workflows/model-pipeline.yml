@@ -3,9 +3,14 @@ name: Model CI/CD
 on:
   push:
     paths:
-      - "data/raw/**"
-      - "src/**"
+      - 'src/train_advanced.py'
+      - 'src/optimize.py'
+      - 'src/evaluate.py'
+      - 'data/processed/**'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   retrain-validate-package:
@@ -14,13 +19,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - run: pip install -r requirements.txt
-
-      - name: Data prep + features
-        run: |
-          python src/data_prep.py
-          python src/features.py
 
       - name: Train candidates + optimize
         run: |
@@ -49,11 +49,11 @@ jobs:
           path: models_tmp/
       - name: Commit updated model to registry
         run: |
-          mkdir -p models data/processed
-          cp models_tmp/best_model_optimized.joblib models/
-          cp models_tmp/scaler.joblib data/processed/
-          git config user.name "model-ci-bot"
-          git config user.email "ci@obrail.local"
-          git add -f models/best_model_optimized.joblib data/processed/scaler.joblib
-          git commit -m "chore: update model [ci]" || echo "no changes"
-          git push
+            mkdir -p models data/processed
+            cp models_tmp/best_model_optimized.joblib models/
+            cp models_tmp/scaler.joblib data/processed/
+            git config user.name "model-ci-bot"
+            git config user.email "ci@obrail.local"
+            git add -f models/best_model_optimized.joblib data/processed/scaler.joblib
+            git commit -m "chore: update model [ci]" || echo "no changes"
+            git push
