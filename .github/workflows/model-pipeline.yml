@@ -1,0 +1,59 @@
+name: Model CI/CD
+
+on:
+  push:
+    paths:
+      - "data/raw/**"
+      - "src/**"
+  workflow_dispatch:
+
+jobs:
+  retrain-validate-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+
+      - name: Data prep + features
+        run: |
+          python src/data_prep.py
+          python src/features.py
+
+      - name: Train candidates + optimize
+        run: |
+          python src/train_advanced.py
+          python src/optimize.py
+
+      - name: Evaluate (gate on metrics)
+        run: python src/evaluate.py --min-f1 0.55 --min-auc 0.85
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: best_model_optimized
+          path: |
+            models/best_model_optimized.joblib
+            data/processed/scaler.joblib
+
+  deploy:
+    needs: retrain-validate-package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: best_model_optimized
+          path: models_tmp/
+      - name: Commit updated model to registry
+        run: |
+          mkdir -p models data/processed
+          cp models_tmp/best_model_optimized.joblib models/
+          cp models_tmp/scaler.joblib data/processed/
+          git config user.name "model-ci-bot"
+          git config user.email "ci@obrail.local"
+          git add -f models/best_model_optimized.joblib data/processed/scaler.joblib
+          git commit -m "chore: update model [ci]" || echo "no changes"
+          git push
