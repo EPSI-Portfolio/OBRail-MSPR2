@@ -15,8 +15,11 @@ Sorties : evaluation/plots/confusion_matrix_final.png
 
 Usage :
     python src/evaluate.py
+    python src/evaluate.py --min-f1 0.55 --min-auc 0.85
 """
 
+import argparse
+import sys
 from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
@@ -42,7 +45,24 @@ PLOT_DIR = EVAL_DIR / "plots"
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Évaluation finale du modèle avec seuils de validation."
+    )
+    parser.add_argument(
+        "--min-f1", type=float, default=0.55,
+        help="Seuil minimal de F1 pour valider le modèle (défaut : 0.55)"
+    )
+    parser.add_argument(
+        "--min-auc", type=float, default=0.85,
+        help="Seuil minimal de ROC-AUC pour valider le modèle (défaut : 0.85)"
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
+
     print("=" * 60)
     print("ÉTAPE 1 — Chargement du modèle et du jeu de test")
     print("=" * 60)
@@ -78,6 +98,7 @@ def main() -> None:
         f.write(f"{'='*50}\n\n")
         f.write(f"Test F1      : {test_f1:.4f}\n")
         f.write(f"Test ROC-AUC : {test_auc:.4f}\n\n")
+        f.write(f"Seuils requis : F1 >= {args.min_f1}, ROC-AUC >= {args.min_auc}\n\n")
         f.write(report)
     print("✅ Rapport sauvegardé → evaluation/evaluation_report.txt")
 
@@ -133,6 +154,18 @@ def main() -> None:
     plt.close()
     print("✅ precision_recall_final.png sauvegardée")
 
+    print("\n" + "=" * 60)
+    print("ÉTAPE 6 — Validation des seuils")
+    print("=" * 60)
+    print(f"Seuils requis : F1 >= {args.min_f1}, ROC-AUC >= {args.min_auc}")
+
+    if test_f1 < args.min_f1 or test_auc < args.min_auc:
+        print(f"\n❌ ÉCHEC — Le modèle ne respecte pas les seuils minimaux.")
+        print(f"   F1={test_f1:.4f} (requis >= {args.min_f1})")
+        print(f"   ROC-AUC={test_auc:.4f} (requis >= {args.min_auc})")
+        sys.exit(1)
+
+    print(f"\n✅ Modèle validé : F1={test_f1:.4f}, ROC-AUC={test_auc:.4f}")
     print("\n🎉 evaluate.py terminé avec succès !")
 
 
