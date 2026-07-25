@@ -51,8 +51,8 @@ jobs:
       - name: Commit updated model to registry
         run: |
           mkdir -p models data/processed
-          cp models_tmp/best_model_optimized.joblib models/
-          cp models_tmp/scaler.joblib data/processed/
+          cp models_tmp/models/best_model_optimized.joblib models/
+          cp models_tmp/data/processed/scaler.joblib data/processed/
           git config user.name "model-ci-bot"
           git config user.email "ci@obrail.local"
           git add -f models/best_model_optimized.joblib data/processed/scaler.joblib
