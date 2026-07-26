@@ -22,6 +22,19 @@ jobs:
           python-version: '3.11'
       - run: pip install -r requirements.txt
 
+      - run: pip install -r requirements.txt
+
+      - name: Validate processed data
+        run: |
+          python -c "
+          import pandas as pd
+          for f in ['data/processed/X_train.csv','data/processed/X_test.csv','data/processed/y_train.csv','data/processed/y_test.csv']:
+              df = pd.read_csv(f)
+              assert not df.empty, f'{f} is empty'
+              assert df.isnull().sum().sum() == 0, f'{f} contains nulls'
+          print('Data validation passed')
+          "
+
       - name: Train candidates + optimize
         run: |
           python src/train_advanced.py
